@@ -1,7 +1,24 @@
 <script src="/a.out.js"></script>
 <script>
+
 Module.onRuntimeInitialized = _ => {
-    const el = new Module.ConstantElement(0.0, 0.0, 1.0, 1.0);
-    el.print();
+    
+    const el1 = new Module.ConstantElement(0.0, 0.0, 1.0, 1.0);
+    console.log('Element 1:');
+    el1.print();
+
+    const el2 = new Module.ConstantElement(1.0, 1.0, 0.0, 0.0);
+    console.log('Element 2:');
+    el2.print();
+
+    const modelElements = Module['modelElements']();
+    modelElements.push_back(el1);
+    modelElements.push_back(el2);
+
+    for (let i = 0; i < modelElements.size(); i++) {
+        modelElements.get(i).print();
+    }
+
 };
+
 </script>

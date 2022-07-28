@@ -1,7 +1,7 @@
 #pragma once
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
 class ConstantElement {
 
@@ -22,14 +22,21 @@ public:
     si_ = dy_ / ds_;
   }
 
-  void print(){
-    std::cout << "hi mom!!!\n";
-  } 
+  double get_x1() { return x1_; }
+  double get_x2() { return x2_; }
+  void print() {
+    std::cout << "coords = (" << get_x1() << ", " << get_x2() << ")\n\n";
+  }
 };
 
-struct PanelResults{};
+std::vector<ConstantElement> model_elements () {
+  std::vector<ConstantElement> v{};
+  return v;
+}
 
-PanelResults solve(std::vector<ConstantElement>){
-    PanelResults results{};
-    return results;
+struct PanelResults {};
+
+PanelResults solve(std::vector<ConstantElement>) {
+  PanelResults results{};
+  return results;
 }
