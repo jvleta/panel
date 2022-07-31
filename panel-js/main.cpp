@@ -3,7 +3,7 @@
 
 using namespace emscripten;
 
-#include "panel.h"
+#include <panel/panel.h>
 
 void dostuff(ConstantElement ce) {
  ce.print();
