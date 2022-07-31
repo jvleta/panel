@@ -3,6 +3,8 @@
 #include <cmath>
 #include <iostream>
 
+#include <yanl/matrix.h>
+
 class ConstantElement {
 
 private:
