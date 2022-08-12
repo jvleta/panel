@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Letalib</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script type="module" src=".components/my-header.js"></script>
+    <script type="module" src="./components/my-footer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+      import { createApp, reactive } from "https://unpkg.com/petite-vue?module";
+      import updateGeometryChart from "./geometry.js";
+
+      const store = reactive({
+        geometryType: "NACA0012",
+        numPanels: 10,
+        output: document.getElementById("output"),
+        geometryChart: document.getElementById("geometryChart"),
+      });
+
+      const updateOutputContainer = () => {
+        store.output.innerHTML = `<div>${store.geometryType}</div><div>${store.numPanels}</div>`;
+        let chartStatus = Chart.getChart("geometryChart"); // <canvas> id
+          if (chartStatus != undefined) {
+          chartStatus.destroy();
+        }
+        updateGeometryChart(geometryChart, store.geometryType);
+      };
+
+      createApp({
+        store,
+        updateOutputContainer,
+      }).mount("#app");
+      
+      updateOutputContainer();
+
+    </script>
+  </head>
+
+  <body>
+    <my-header class="header-wrapper"></my-header>
+    <div id="app">
+      <!-- <div v-scope="FormInput({})"></div> -->
+      <form>
+        <label>Geometry Type</label>
+        <select v-model="store.geometryType" @change="updateOutputContainer">
+          <option value="ELLIPSE_21">2:1 Ellipse</option>
+          <option value="NACA0012">NACA0012</option>
+          <option value="NACA0014">NACA0014</option>
+        </select>
+        <div>
+          <label>Number of Panels</label>
+          <input
+            v-model="store.numPanels"
+            type="range"
+            min="10"
+            max="100"
+            value="store.numPanels"
+            step="2"
+            @change="updateOutputContainer"
+          />
+
+          <div id="output">
+            <div>{{store.geometryType}}</div>
+            <div>{{store.numPanels}}</div>
+          </div>
+
+          <div>
+            <canvas id="geometryChart"></canvas>
+          </div>
+          
+        </div>
+      </form>
+    </div>
+    <my-footer class="footer-wrapper"></my-footer>
+  </body>
+</html>
