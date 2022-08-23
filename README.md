@@ -1,3 +1,2 @@
 # panel
-
-[![Build](https://github.com/jvleta/panel/actions/workflows/cmake.yml/badge.svg)](https://github.com/jvleta/panel/actions/workflows/cmake.yml)
+[![Build](https://github.com/jvleta/panel/actions/workflows/build.yml/badge.svg)](https://github.com/jvleta/panel/actions/workflows/build.yml)
