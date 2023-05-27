@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PANEL_H
+#define PANEL_H
 
 #include <cmath>
 #include <iostream>
@@ -42,3 +43,5 @@ PanelResults solve(std::vector<ConstantElement>) {
   PanelResults results{};
   return results;
 }
+
+#endif
