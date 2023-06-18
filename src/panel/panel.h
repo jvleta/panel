@@ -10,16 +10,16 @@ struct PanelInput {
   int num_panels;
   int num_points;
   double mach_number;
-  double ratio;
+  double ellipse_ratio;
 };
 
-struct PanelData : PanelInput {
+class Panel : public PanelInput {
   std::vector<double> x, y, xc, yc, ds, si, ci;
-  PanelData(const PanelInput &input) {
+  Panel(const PanelInput &input) {
     num_panels = input.num_panels;
     num_points = input.num_panels + 1;
     mach_number = input.mach_number;
-    ratio = input.ratio;
+    ellipse_ratio = input.ellipse_ratio;
     x.resize(num_points);
     y.resize(num_points);
     xc.resize(num_panels);
@@ -28,66 +28,65 @@ struct PanelData : PanelInput {
     ci.resize(num_panels);
     si.resize(num_panels);
   }
-};
 
-void body(PanelData *data) {
+  void body() {
 
-  auto &x = data->x;
-  auto &y = data->y;
-  auto &xc = data->xc;
-  auto &yc = data->yc;
-  auto &ds = data->ds;
-  auto &ci = data->ci;
-  auto &si = data->si;
-  const int n = data->num_panels;
-  const double fmn = data->mach_number;
-  const double ratio = data->ratio;
+    const int n = num_panels;
+    const double fmn = mach_number;
+    const double ratio = ellipse_ratio;
 
-  // body points
-  const double fac = std::sqrt(1.0 - std::pow(fmn, 2.0));
-  const int nhlff = n / 2 + 1;
-  const int nhh = nhlff + 1;
-  const int an = nhlff - 1;
-  const double pi = M_PI;
-  const double dth = pi / an;
+    // body points
+    const double fac = std::sqrt(1.0 - std::pow(fmn, 2.0));
+    const int nhlff = n / 2 + 1;
+    const int nhh = nhlff + 1;
+    const int an = nhlff - 1;
+    const double pi = M_PI;
+    const double dth = pi / an;
 
-  for (int i = 0; i < n / 2 + 1; ++i) {
-    double th = pi - i * dth;
-    x[i] = std::cos(th);
-    y[i] = ratio * std::sin(th);
-    // prandtl-glauert transformation
-    y[i] *= fac;
+    for (int i = 0; i < n / 2 + 1; ++i) {
+      double th = pi - i * dth;
+      x[i] = std::cos(th);
+      y[i] = ratio * std::sin(th);
+      // prandtl-glauert transformation
+      y[i] *= fac;
+    }
+
+    // reflect for coordinates of lower half
+    for (int i = n / 2 + 1; i < n; ++i) {
+      x[i] = x[n - i];
+      y[i] = -y[n - i];
+    }
+
+    x[n] = x[0];
+    y[n] = y[0];
+
+    // place control points at the center of panels
+    for (int i = 0; i < n; ++i) {
+      xc[i] = 0.5 * (x[i] + x[i + 1]);
+      yc[i] = 0.5 * (y[i] + y[i + 1]);
+    }
+
+    // // calculate panel spans, cos and sin of angles
+    for (int i = 0; i < n; ++i) {
+      double sx = x[i + 1] - x[i];
+      double sy = y[i + 1] - y[i];
+      ds[i] = std::sqrt(std::pow(sx, 2.0) + std::pow(sy, 2.0));
+      ci[i] = sx / ds[i];
+      si[i] = sy / ds[i];
+    }
+
+    // output element parameters
+    for (int i = 0; i < n; ++i) {
+      std::cout << i + 1 << " " << xc[i] << " " << yc[i] << "\n";
+    }
   }
 
-  // reflect for coordinates of lower half
-  for (int i = n / 2 + 1; i < n; ++i) {
-    x[i] = x[n - i];
-    y[i] = -y[n - i];
-  }
-
-  x[n] = x[0];
-  y[n] = y[0];
-
-  // place control points at the center of panels
-  for (int i = 0; i < n; ++i) {
-    xc[i] = 0.5 * (x[i] + x[i + 1]);
-    yc[i] = 0.5 * (y[i] + y[i + 1]);
-  }
-
-  // // calculate panel spans, cos and sin of angles
-  for (int i = 0; i < n; ++i) {
-    double sx = x[i + 1] - x[i];
-    double sy = y[i + 1] - y[i];
-    ds[i] = std::sqrt(std::pow(sx, 2.0) + std::pow(sy, 2.0));
-    ci[i] = sx / ds[i];
-    si[i] = sy / ds[i];
-  }
-}
-
-PanelData panel(const PanelInput &input) {
-  PanelData data = PanelData(input);
-  body(&data);
-  return data;
+public:
+  static Panel run(const PanelInput &input) {
+    Panel data = Panel(input);
+    data.body();
+    return data;
+  };
 };
 
 // class ConstantElement {
