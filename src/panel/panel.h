@@ -2,8 +2,10 @@
 #define PANEL_H
 
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 
+#include <yanl/linear_algebra.h>
 #include <yanl/matrix.h>
 
 struct PanelInput {
@@ -14,7 +16,8 @@ struct PanelInput {
 };
 
 class Panel : public PanelInput {
-  std::vector<double> x, y, xc, yc, ds, si, ci;
+private:
+  std::vector<double> x, y, xc, yc, ds, si, ci, theta, qn, qt, u, v, p;
   Panel(const PanelInput &input) {
     num_panels = input.num_panels;
     num_points = input.num_panels + 1;
@@ -27,10 +30,15 @@ class Panel : public PanelInput {
     ds.resize(num_panels);
     ci.resize(num_panels);
     si.resize(num_panels);
+    qt.resize(num_panels);
+    qn.resize(num_panels);
+    theta.resize(num_panels);
+    u.resize(num_panels);
+    v.resize(num_panels);
+    p.resize(num_panels);
   }
 
   void body() {
-
     const int n = num_panels;
     const double fmn = mach_number;
     const double ratio = ellipse_ratio;
@@ -74,10 +82,69 @@ class Panel : public PanelInput {
       ci[i] = sx / ds[i];
       si[i] = sy / ds[i];
     }
+  }
 
-    // output element parameters
-    for (int i = 0; i < n; ++i) {
-      std::cout << i + 1 << " " << xc[i] << " " << yc[i] << "\n";
+  void matelm() {
+    double vx = 1.0;
+    double vy = 0.0;
+    auto R = yanl::matrix<double>(num_panels, 1);
+    auto FN = yanl::matrix<double>(num_panels, num_panels);
+    auto FT = yanl::matrix<double>(num_panels, num_panels);
+
+    for (int k = 0; k < num_panels; ++k) {
+      R(k, 0) = vx * si[k] - vy * ci[k];
+
+      for (int j = 0; j < num_panels; ++j) {
+        if (k == j) {
+          FN(k, j) = 2.0 * M_PI;
+          FT(k, j) = 0.0;
+        } else {
+          double dyj = si[j] * ds[j];
+          double dxj = ci[j] * ds[j];
+          double sph = ds[j] / 2.0;
+
+          double xd = xc[k] - xc[j];
+          double yd = yc[k] - yc[j];
+          double rkj = std::sqrt(xd * xd + yd * yd);
+
+          double bkj = std::atan2(yd, xd);
+          double alj = std::atan2(dyj, dxj);
+          double gkj = alj - bkj;
+
+          double zik = rkj * std::cos(gkj);
+          double etk = -rkj * std::sin(gkj);
+
+          double r1s = std::pow((zik + sph), 2.0) + std::pow(etk, 2.0);
+          double r2s = std::pow((zik - sph), 2.0) + std::pow(etk, 2.0);
+          double qt = std::log(r1s / r2s);
+
+          double den = zik * zik + etk * etk - sph * sph;
+          double gnm = etk * ds[j];
+          double qn = 2.0 * std::atan2(gnm, den);
+
+          double ukj = qt * ci[j] - qn * si[j];
+          double vkj = qt * si[j] + qn * ci[j];
+
+          FN(k, j) = -ukj * si[k] + vkj * ci[k];
+          FT(k, j) = ukj * ci[k] + vkj * si[k];
+        }
+      }
+    }
+    auto sde = yanl::linear_algebra::solve(FN, R);
+    auto qts = FT * sde;
+    auto qns = FN * sde;
+    std::cout << std::setprecision(3);
+    for (int i = 0; i < num_panels; ++i) {
+      theta[i] = std::atan2(yc[i], xc[i]);
+      qt[i] = qts(i, 0) + vy * si[i] + vx * ci[i];
+      qn[i] = qns(i, 0) + vy * ci[i] - vx * si[i];
+      u[i] = vx - qns(i, 0) * si[i] + qts(i, 0) * ci[i];
+      v[i] = vy + qns(i, 0) * ci[i] + qts(i, 0) * si[i];
+      p[i] = 1.0 - std::pow(u[i], 2.0) - std::pow(v[i], 2.0);
+
+      std::cout << "XY,YC = " << xc[i] << "\t" << yc[i] << "\tQN,QT = 0.00"
+                << "\t" << qt[i] << "\tU,V = " << u[i] << "\t" << v[i]
+                << "\tP = " << p[i] << "\n";
     }
   }
 
@@ -85,46 +152,9 @@ public:
   static Panel run(const PanelInput &input) {
     Panel data = Panel(input);
     data.body();
+    data.matelm();
     return data;
   };
 };
-
-// class ConstantElement {
-
-// private:
-//   double x1_, y1_;
-//   double x2_, y2_;
-//   double xbar_, ybar_;
-//   double dx_, dy_, ds_;
-//   double ci_, si_;
-
-// public:
-//   ConstantElement(double x1, double y1, double x2, double y2)
-//       : x1_(x1), y1_(y1), x2_(x2), y2_(y2) {
-//     dx_ = x2_ - x1_;
-//     dy_ = y2_ - y1_;
-//     ds_ = std::sqrt(dx_ * dx_ + dy_ * dy_);
-//     ci_ = dx_ / ds_;
-//     si_ = dy_ / ds_;
-//   }
-
-//   double get_x1() { return x1_; }
-//   double get_x2() { return x2_; }
-//   void print() {
-//     std::cout << "coords = (" << get_x1() << ", " << get_x2() << ")\n\n";
-//   }
-// };
-
-// std::vector<ConstantElement> model_elements () {
-//   std::vector<ConstantElement> v{};
-//   return v;
-// }
-
-// struct PanelResults {};
-
-// PanelResults solve(std::vector<ConstantElement>) {
-//   PanelResults results{};
-//   return results;
-// }
 
 #endif
