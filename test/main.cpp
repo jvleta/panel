@@ -1,8 +1,6 @@
-#include <iostream>
+#define APPROVALS_GOOGLETEST
+#include <ApprovalTests.hpp>
 
-#include <panel/panel.h>
+auto directoryDisposer =
+    ApprovalTests::Approvals::useApprovalsSubdirectory("results");
 
-int main() {
-  PanelInput p{20, 21, 0.0, 0.5};
-  const auto r = Panel::run(p);
-}

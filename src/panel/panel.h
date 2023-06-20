@@ -84,7 +84,7 @@ private:
     }
   }
 
-  void matelm() {
+  std::string matelm() {
     double vx = 1.0;
     double vy = 0.0;
     auto R = yanl::matrix<double>(num_panels, 1);
@@ -133,7 +133,9 @@ private:
     auto sde = yanl::linear_algebra::solve(FN, R);
     auto qts = FT * sde;
     auto qns = FN * sde;
-    std::cout << std::setprecision(3);
+
+    std::stringstream ss;
+    ss << std::setprecision(3);
     for (int i = 0; i < num_panels; ++i) {
       theta[i] = std::atan2(yc[i], xc[i]);
       qt[i] = qts(i, 0) + vy * si[i] + vx * ci[i];
@@ -142,18 +144,18 @@ private:
       v[i] = vy + qns(i, 0) * ci[i] + qts(i, 0) * si[i];
       p[i] = 1.0 - std::pow(u[i], 2.0) - std::pow(v[i], 2.0);
 
-      std::cout << "XY,YC = " << xc[i] << "\t" << yc[i] << "\tQN,QT = 0.00"
-                << "\t" << qt[i] << "\tU,V = " << u[i] << "\t" << v[i]
-                << "\tP = " << p[i] << "\n";
+      ss << "XY,YC = " << xc[i] << "\t" << yc[i] << "\tQN,QT = 0.00"
+         << "\t" << qt[i] << "\tU,V = " << u[i] << "\t" << v[i]
+         << "\tP = " << p[i] << "\n";
     }
+    return ss.str();
   }
 
 public:
-  static Panel run(const PanelInput &input) {
+  static std::string run(const PanelInput &input) {
     Panel data = Panel(input);
     data.body();
-    data.matelm();
-    return data;
+    return data.matelm();
   };
 };
 
