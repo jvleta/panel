@@ -7,6 +7,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
+find_package(nlohmann_json 3.2.0 REQUIRED)
+
 add_library(GTest::GTest INTERFACE IMPORTED)
 target_link_libraries(GTest::GTest INTERFACE gtest_main)
 
@@ -17,4 +19,4 @@ FetchContent_MakeAvailable(ApprovalTests)
 
 add_executable(demo approval_tests.cpp main.cpp)
 
-target_link_libraries(demo yanl panel ApprovalTests::ApprovalTests GTest::GTest)
+target_link_libraries(demo yanl panel ApprovalTests::ApprovalTests GTest::GTest nlohmann_json::nlohmann_json)

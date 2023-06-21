@@ -9,8 +9,10 @@
 
 #include <panel/panel.h>
 
+
 TEST(panel_tests, INPR1) {
-  PanelInput p{20, 21, 0.0, 0.5};
-  const auto r = Panel::run(p);
+  auto j = json::parse(R"({"num_panels": 20, "mach_number": 0.0, "ellipse_ratio": 0.5})");
+  auto p = j.get<panel::PanelInput>();
+  const auto r = panel::Panel::run(p);
   ApprovalTests::Approvals::verify(r);
 }

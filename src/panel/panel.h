@@ -4,23 +4,38 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
-
+#include <nlohmann/json.hpp>
 #include <yanl/linear_algebra.h>
 #include <yanl/matrix.h>
 
+using json = nlohmann::json;
+
+namespace panel {
 struct PanelInput {
   int num_panels;
-  int num_points;
   double mach_number;
   double ellipse_ratio;
 };
 
+void to_json(json &j, const PanelInput &p) {
+  j = json{{"num_panels", p.num_panels},
+           {"mach_number", p.mach_number},
+           {"ellipse_ratio", p.ellipse_ratio}};
+}
+
+void from_json(const json &j, PanelInput &p) {
+  j.at("num_panels").get_to(p.num_panels);
+  j.at("mach_number").get_to(p.mach_number);
+  j.at("ellipse_ratio").get_to(p.ellipse_ratio);
+}
+
 class Panel : public PanelInput {
 private:
+  int num_points = 0;
   std::vector<double> x, y, xc, yc, ds, si, ci, theta, qn, qt, u, v, p;
   Panel(const PanelInput &input) {
     num_panels = input.num_panels;
-    num_points = input.num_panels + 1;
+    num_points = num_panels + 1;
     mach_number = input.mach_number;
     ellipse_ratio = input.ellipse_ratio;
     x.resize(num_points);
@@ -158,5 +173,7 @@ public:
     return data.matelm();
   };
 };
+
+} // namespace panel
 
 #endif
