@@ -172,6 +172,14 @@ public:
     data.body();
     return data.matelm();
   };
+
+  static std::string run(const std::string &input) {
+    auto j = json::parse(input);
+    auto p = j.get<panel::PanelInput>();
+    Panel data = Panel(p);
+    data.body();
+    return data.matelm();
+  };
 };
 
 } // namespace panel
