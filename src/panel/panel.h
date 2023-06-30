@@ -163,6 +163,15 @@ private:
          << "\t" << qt[i] << "\tU,V = " << u[i] << "\t" << v[i]
          << "\tP = " << p[i] << "\n";
     }
+
+    json j;
+    j["theta"] = theta;
+    j["qt"] = qt;
+    j["qn"] = qn;
+    j["u"] = u;
+    j["v"] = v;
+    j["p"] = p;
+
     return ss.str();
   }
 
